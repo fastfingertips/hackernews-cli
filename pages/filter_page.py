@@ -1,17 +1,19 @@
-from utils.curses_utils import get_input
+from utils.curses_utils import (
+  clear_screen,
+  safe_addstr,
+  get_input
+)
 
-def show_filter_page(stdscr, current_filter):
-    stdscr.clear()
-    prompt = "Filter: "
-    stdscr.addstr(0, 0, prompt)
+@clear_screen
+def show_filter_page(stdscr, current_filter: str = ""):
+    prompt = "filter: "
+    safe_addstr(stdscr, 0, 0, prompt)
     
-    # Display the current filter value below the prompt, using quotes for clarity
+    # display the current filter value below the prompt, using quotes for clarity
     if current_filter:
-        stdscr.addstr(1, 0, f"Current filter: \"{current_filter}\"")
+        safe_addstr(stdscr, 1, 0, f"current filter: \"{current_filter}\"")
     
-    stdscr.refresh()
-    
-    # Get new filter query from user input
+    # get new filter query from user input
     filter_query = get_input(stdscr, prompt)
     
     return filter_query
