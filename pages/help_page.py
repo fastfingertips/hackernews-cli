@@ -1,9 +1,28 @@
-import curses
+from utils.curses_utils import display_help_text, wait_for_exit
 
 def show_help_page(stdscr):
-    stdscr.clear()
+    """
+    Display the help page on the terminal screen.
     
-    help_text = [
+    :param stdscr: The curses screen object.
+    """
+    stdscr.clear()
+
+    help_text = get_help_text()
+
+    # Center the help menu on the screen
+    display_help_text(stdscr, help_text)
+
+    # Show exit message and wait for key press to return
+    wait_for_exit(stdscr)
+
+def get_help_text():
+    """
+    Return a list of help text lines to be displayed.
+    
+    :return: List of strings containing the help text.
+    """
+    return [
         "🔹 Navigation Shortcuts:",
         "  ←: Previous Page  |  Navigate to the previous page.",
         "  →: Next Page      |  Navigate to the next page.",
@@ -21,24 +40,3 @@ def show_help_page(stdscr):
         "  h: Help Menu      |  Display this help menu.",
         "",
     ]
-
-    # Display the help menu centered on the screen
-    height, width = stdscr.getmaxyx()
-    padding_y = max(0, (height - len(help_text)) // 2)  # Vertical centering
-    padding_x = max(0, (width - max(len(line) for line in help_text)) // 2)  # Horizontal centering
-
-    # Print help text
-    for i, line in enumerate(help_text):
-        stdscr.addstr(padding_y + i, padding_x, line[:width - 1])
-
-    # Show exit message in reverse text style
-    exit_message = "Press any key to return..."
-    stdscr.addstr(height - 1, max(0, (width - len(exit_message)) // 2), exit_message, curses.A_REVERSE)
-
-    stdscr.refresh()
-
-    # Exit help menu on any key press
-    while True:
-        key = stdscr.getch()
-        if key != -1:
-            break
