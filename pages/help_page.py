@@ -1,13 +1,17 @@
-from utils.curses_utils import display_help_text, wait_for_exit
+from utils.curses_utils import (
+  display_help_text,
+  wait_for_exit,
+  clear_screen
+)
 
+
+@clear_screen
 def show_help_page(stdscr):
     """
     Display the help page on the terminal screen.
     
     :param stdscr: The curses screen object.
     """
-    stdscr.clear()
-
     help_text = get_help_text()
 
     # Center the help menu on the screen
