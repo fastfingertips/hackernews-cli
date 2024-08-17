@@ -2,11 +2,13 @@ from functools import wraps
 import curses
 
 def clear_screen(func):
-    """Decorator to clear the screen before calling the function."""
+    """Decorator to clear the screen before calling the function and refresh after it."""
     @wraps(func)
     def wrapper(stdscr, *args, **kwargs):
         stdscr.clear()
-        return func(stdscr, *args, **kwargs)
+        result = func(stdscr, *args, **kwargs)
+        stdscr.refresh()
+        return result
     return wrapper
 
 def truncate_line(line, width):
