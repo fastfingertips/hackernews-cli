@@ -1,5 +1,7 @@
 from functools import wraps
 import curses
+import time
+
 
 def clear_screen(func):
     """Decorator to clear the screen before calling the function and refresh after it."""
@@ -115,3 +117,70 @@ def get_input(stdscr, prompt=""):
 
     curses.noecho()
     return input_str
+
+def show_info(stdscr, message, title="Info", display_time=2):
+    """
+    display an informational window for a specified amount of time.
+
+    :param stdscr: the curses window object
+    :param message: the message to display
+    :param title: the title of the window
+    :param display_time: time in seconds to display the window
+    """
+    height, width = stdscr.getmaxyx()
+    padding = 2
+    box_width = max(len(message) + 2 * padding, len(title) + 2 * padding)
+    box_height = 5
+    start_y = height // 2 - box_height // 2
+    start_x = width // 2 - box_width // 2
+
+    info_win = curses.newwin(box_height, box_width, start_y, start_x)
+    info_win.box()
+    info_win.addstr(1, padding, title, curses.A_BOLD)
+    info_win.addstr(3, padding, message)
+    info_win.refresh()
+
+    time.sleep(display_time)
+    info_win.clear()
+    stdscr.refresh()
+
+def show_info_with_cancel(stdscr, message, title, display_time=2):
+    """
+    show an info window with an option to cancel.
+
+    :param stdscr: the curses window object
+    :param message: the message to display
+    :param title: the title of the window
+    :param display_time: time in seconds to display the window
+    :return: true if user pressed ESC, false otherwise
+    """
+    height, width = stdscr.getmaxyx()
+    window_height = 7
+    window_width = max(len(title) + 4, len(message) + 4)
+
+    win = curses.newwin(window_height, window_width, height // 2 - window_height // 2, width // 2 - window_width // 2)
+    win.box()
+    title_line = f" {title} "
+    win.addstr(1, (window_width - len(title_line)) // 2, title_line, curses.A_BOLD)
+
+    for i, line in enumerate(message.split('\n')):
+        if i < window_height - 3:
+            win.addstr(i + 2, 2, line[:window_width - 4])
+
+    win.refresh()
+    start_time = time.time()
+
+    while True:
+        key = stdscr.getch()
+        if key == 27:  # ESC key
+            win.clear()
+            win.refresh()
+            show_info(stdscr, "Cancelled", "Info", 1)
+            time.sleep(0.5)
+            return True
+        if time.time() - start_time > display_time:
+            break
+
+    win.clear()
+    win.refresh()
+    return False

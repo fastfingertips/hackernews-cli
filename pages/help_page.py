@@ -1,4 +1,4 @@
-from utils.curses_utils import (
+from utils.terminal.curses_utils import (
   display_help_text,
   wait_for_exit,
   clear_screen

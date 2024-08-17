@@ -1,6 +1,6 @@
-from utils.input_utils import (
-  handle_navigation,
-  handle_actions
+from .handlers import (
+    NavigationHandler,
+    ActionHandler
 )
 
 
@@ -17,8 +17,12 @@ def handle_input(stdscr, key, current_page, page, selected_index, articles, filt
     :param filtered_articles: The filtered list of articles
     :return: Updated current_page, page, selected_index, filter_query
     """
-    current_page, page, selected_index = handle_navigation(key, current_page, page, selected_index, articles)
-    current_page, page, selected_index, filter_query = handle_actions(key, stdscr, current_page, page, selected_index, articles, filter_query)
+
+    navigation_handler = NavigationHandler(current_page, page, selected_index, articles)
+    action_handler = ActionHandler(stdscr, current_page, page, selected_index, articles, filter_query)
+
+    current_page, page, selected_index = navigation_handler.handle_navigation(key)
+    filter_query = action_handler.handle_action(key)
 
     # signal to quit
     if key == ord('q'):

@@ -1,4 +1,4 @@
-from utils.curses_utils import (
+from utils.terminal.curses_utils import (
   highlight_selection,
   truncate_line,
   clear_screen

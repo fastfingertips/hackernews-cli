@@ -1,6 +1,7 @@
 import requests
-from bs4 import BeautifulSoup
 from models.models import Article, Page
+from utils.html.html_utils import parse_html
+
 
 def fetch_html(url: str) -> str:
     """
@@ -13,19 +14,6 @@ def fetch_html(url: str) -> str:
     response = requests.get(url)
     response.raise_for_status()
     return response.text
-
-def parse_html(html: str) -> list[tuple[str, str]]:
-    """
-    Parse the HTML content to extract article titles and links.
-
-    :param html: HTML content to parse
-    :return: List of tuples with the title and link of each article
-    """
-    soup = BeautifulSoup(html, 'html.parser')
-    return [
-        (a.get_text(strip=True), a.get('href', ''))
-        for a in soup.select('tr.athing td.title > span.titleline > a')
-    ]
 
 def fetch_hacker_news(
         page: int,

@@ -1,8 +1,9 @@
-from utils.curses_utils import (
+from utils.terminal.curses_utils import (
   clear_screen,
   safe_addstr,
   get_input
 )
+
 
 @clear_screen
 def show_filter_page(stdscr, current_filter: str = ""):
