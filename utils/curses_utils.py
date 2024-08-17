@@ -11,9 +11,20 @@ def clear_screen(func):
         return result
     return wrapper
 
-def truncate_line(line, width):
-    """Truncate the line to fit within the given width."""
-    return line[:width - 4] + '...' if len(line) > width - 1 else line
+def truncate_line(text, max_length, count=3, symbol='.'):
+    """
+    Truncate the text to fit within max_length, appending symbols if needed.
+
+    :param text: Text to truncate.
+    :param max_length: Maximum length of the text.
+    :param count: Number of truncation symbols to append.
+    :param symbol: Symbol to use for truncation.
+    :return: Truncated text if necessary, with symbols appended.
+    """
+    text = text.rstrip()
+    if len(text) > max_length:
+        return text[:max_length - count] + symbol * count
+    return text
 
 def safe_addstr(stdscr, y, x, string):
     """Safely add a string to the screen, handling curses.error."""
