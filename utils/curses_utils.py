@@ -1,4 +1,33 @@
+from functools import wraps
 import curses
+
+def clear_screen(func):
+    """Decorator to clear the screen before calling the function."""
+    @wraps(func)
+    def wrapper(stdscr, *args, **kwargs):
+        stdscr.clear()
+        return func(stdscr, *args, **kwargs)
+    return wrapper
+
+def truncate_line(line, width):
+    """Truncate the line to fit within the given width."""
+    return line[:width - 4] + '...' if len(line) > width - 1 else line
+
+def safe_addstr(stdscr, y, x, string):
+    """Safely add a string to the screen, handling curses.error."""
+    try:
+        stdscr.addstr(y, x, string)
+    except curses.error:
+        # Handle the error (e.g., log it, ignore it, etc.)
+        pass
+
+def highlight_selection(stdscr, condition, line, y, x):
+    """Apply or remove reverse attribute based on the condition."""
+    if condition:
+        stdscr.attron(curses.A_REVERSE)
+    safe_addstr(stdscr, y, x, line)
+    if condition:
+        stdscr.attroff(curses.A_REVERSE)
 
 def display_help_text(stdscr, help_text):
     """
