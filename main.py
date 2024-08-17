@@ -1,8 +1,9 @@
 import curses
-from utils.input_handler import handle_input
-from utils.fetch_utils import fetch_hacker_news
-from utils.filter_utils import apply_filter
+from utils.terminal.input_utils import handle_input
+from utils.html.fetch_utils import fetch_hacker_news
+from utils.helpers.filter_utils import apply_filter
 from pages import show_home_page
+
 
 def main(stdscr):
     """initialize and run the TUI application"""
@@ -41,9 +42,8 @@ def main(stdscr):
             articles, 
             filter_query
         )
-        
-        # exit if result contains None
-        if result is None:
+
+        if not any(result):
             break
 
         current_page, page, selected_index, filter_query = result
