@@ -54,7 +54,6 @@ def wait_for_exit(stdscr):
     height, width = stdscr.getmaxyx()
     exit_message = "Press any key to return..."
     stdscr.addstr(height - 1, max(0, (width - len(exit_message)) // 2), exit_message, curses.A_REVERSE)
-    stdscr.refresh()
 
     while True:
         key = stdscr.getch()
@@ -65,24 +64,39 @@ def clear_line(stdscr, y, x, length):
     """Clear a line of text at the given coordinates."""
     stdscr.addstr(y, x, ' ' * length)
 
-def get_input(stdscr, prompt):
-    """Display a prompt and get user input."""
-    stdscr.addstr(0, 0, prompt)
-    stdscr.refresh() # Refresh the screen to show the prompt
+def get_input(stdscr, prompt=""):
+    """
+    Display a prompt and get user input. If no prompt is provided, just get input.
+    
+    :param stdscr: The curses window object
+    :param prompt: The prompt string to display (default is an empty string)
+    :return: The user input string
+    """
+    # Display prompt if provided
+    if prompt:
+        stdscr.addstr(0, 0, prompt)
+
     curses.echo()
     input_str = ""
-    
+
     while True:
         key = stdscr.getch()
         
         if key == curses.KEY_BACKSPACE or key == 127:
             input_str = input_str[:-1]
-            clear_line(stdscr, 0, len(prompt), len(input_str) + 1)
-            stdscr.addstr(0, len(prompt), input_str)
+            if prompt:
+                clear_line(stdscr, 0, len(prompt), len(input_str) + 1)
+                stdscr.addstr(0, len(prompt), input_str)
+            else:
+                clear_line(stdscr, 0, 0, len(input_str) + 1)
+                stdscr.addstr(0, 0, input_str)
         elif key in range(32, 127):
             input_str += chr(key)
-            stdscr.addstr(0, len(prompt), input_str)
-        elif key == 10:
+            if prompt:
+                stdscr.addstr(0, len(prompt), input_str)
+            else:
+                stdscr.addstr(0, 0, input_str)
+        elif key == 10:  # Enter key
             break
         elif key == 27:  # ESC key
             input_str = ""
