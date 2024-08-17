@@ -21,8 +21,6 @@ def show_home_page(stdscr, articles, selected_index, current_page, total_pages, 
     show_selected_info(stdscr, filtered_articles, selected_index, height, width)
     show_footer(stdscr, current_page, total_pages, height, width)
 
-    stdscr.refresh()
-
 def display_filtered_articles(stdscr, filtered_articles, selected_index, width):
     """Display the filtered list of articles."""
     for i, article in enumerate(filtered_articles):
