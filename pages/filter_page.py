@@ -1,28 +1,17 @@
-import curses
+from utils.curses_utils import get_input
 
 def show_filter_page(stdscr, current_filter):
     stdscr.clear()
-    curses.echo()
-    height, width = stdscr.getmaxyx()
-    stdscr.addstr(0, 0, "Filter: ")
+    prompt = "Filter: "
+    stdscr.addstr(0, 0, prompt)
+    
+    # Display the current filter value below the prompt, using quotes for clarity
+    if current_filter:
+        stdscr.addstr(1, 0, f"Current filter: \"{current_filter}\"")
+    
     stdscr.refresh()
-    filter_query = ""
-
-    while True:
-        key = stdscr.getch()
-        
-        if key == curses.KEY_BACKSPACE or key == 127:
-            filter_query = filter_query[:-1]
-            stdscr.addstr(0, 8, " " * (len(filter_query) + 7))
-            stdscr.addstr(0, 8, filter_query)
-        elif key in range(32, 127):
-            filter_query += chr(key)
-            stdscr.addstr(0, 8, filter_query)
-        elif key == 10:
-            break
-        elif key == 27:
-            filter_query = ""
-            break
-
-    curses.noecho()
+    
+    # Get new filter query from user input
+    filter_query = get_input(stdscr, prompt)
+    
     return filter_query
