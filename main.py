@@ -5,33 +5,50 @@ from utils.filter_utils import apply_filter
 from pages import show_home_page
 
 def main(stdscr):
-    curses.curs_set(0)
-    stdscr.nodelay(1)
-    stdscr.timeout(100)
+    """initialize and run the TUI application"""
+    curses.curs_set(0)  # hide the cursor
+    stdscr.nodelay(1)  # non-blocking input
+    stdscr.timeout(100)  # set input timeout
 
     current_page = 1
     selected_index = 0
     filter_query = ""
 
+    # fetch initial page of articles
     page = fetch_hacker_news(current_page)
 
     while True:
-        # Apply filter to get filtered articles
-        filtered_articles = apply_filter(page.articles, filter_query)
-        
-        # Draw TUI
-        show_home_page(stdscr, filtered_articles, selected_index, page.current_page, page.total_pages, filter_query)
-        key = stdscr.getch()
+        # apply filter to get filtered articles
+        articles = apply_filter(page.articles, filter_query)
 
-        # Handle user input
-        result = handle_input(key, stdscr, current_page, page, selected_index, filter_query, filtered_articles)
+        # draw the home page and get user input
+        key = show_home_page(
+            stdscr,
+            articles,
+            selected_index,
+            page.current_page,
+            page.total_pages,
+            filter_query
+        )
+    
+        # handle user input and update state
+        result = handle_input(
+            stdscr,
+            key,
+            current_page,
+            page,
+            selected_index,
+            articles, 
+            filter_query
+        )
         
+        # exit if result contains None
         if result is None:
             break
-        
+
         current_page, page, selected_index, filter_query = result
 
-    curses.endwin()
+    curses.endwin()  # end curses mode
 
 if __name__ == "__main__":
     curses.wrapper(main)
