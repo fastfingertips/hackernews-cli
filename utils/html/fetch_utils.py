@@ -1,5 +1,5 @@
 import requests
-from models.models import Article, Page
+from models import Article, Page
 from utils.html.html_utils import parse_html
 
 
