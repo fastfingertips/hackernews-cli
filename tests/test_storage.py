@@ -89,7 +89,18 @@ class StorageTests(unittest.TestCase):
         )
 
         rendered = "".join(write[2] for write in screen.writes)
-        self.assertIn(str(self.service.directory()), rendered)
+        directory_text = next(
+            write[2]
+            for write in screen.writes
+            if "directory:" in write[2]
+        )
+        displayed_path = directory_text.split(
+            "directory: ",
+            1,
+        )[1].removesuffix("...")
+        self.assertTrue(
+            str(self.service.directory()).startswith(displayed_path)
+        )
         self.assertIn("SQLite", rendered)
         self.assertIn("sync: off", rendered)
         self.assertIn("encryption: no", rendered)
