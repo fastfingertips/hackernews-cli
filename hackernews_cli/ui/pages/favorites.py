@@ -8,6 +8,7 @@ from ...data.events import OPEN_FAVORITE
 from ...services import ActivityService
 from ..components.favorites_table import draw_favorites
 from ..terminal.prompts import show_record_filter
+from ..tabs import switch_for_key
 
 
 def show_favorites(
@@ -43,6 +44,9 @@ def show_favorites(
             )
             key = stdscr.getch()
 
+            tab_switch = switch_for_key("favorites", key)
+            if tab_switch:
+                return tab_switch
             if key in (27, ord("q"), ord("Q"), ord("F")):
                 return
             if key in (curses.KEY_DOWN, ord("j"), ord("J")) and entries:

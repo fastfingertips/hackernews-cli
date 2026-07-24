@@ -1,6 +1,7 @@
 """Execute feed actions without owning keyboard dispatch."""
 
 from ..data.events import OPEN_COMMENTS
+from ..hn.categories import CATEGORIES
 from ..services import (
     ActivityService,
     BulkOpenService,
@@ -19,6 +20,7 @@ from ..ui.pages import (
     show_saved_filters,
 )
 from ..ui.terminal.prompts import show_feed_filter
+from ..ui.tabs import TabSwitch, adjacent_tab
 
 
 class ActionExecutor:
@@ -71,25 +73,25 @@ class ActionExecutor:
         self.state.reset_selection()
 
     def show_help(self):
-        show_help(self.stdscr)
+        self._show_tab("help")
 
     def show_about(self):
-        show_about(self.stdscr)
+        self._show_tab("about")
 
     def show_history(self):
-        show_history(self.stdscr, self.context)
+        self._show_tab("history")
 
     def toggle_favorite(self):
         self.activity.toggle_favorite(self._selected_article())
 
     def show_favorites(self):
-        show_favorites(self.stdscr, self.context)
+        self._show_tab("favorites")
 
     def toggle_read(self):
         self.activity.toggle_read(self._selected_article())
 
     def show_data(self):
-        show_data(self.stdscr, self.storage)
+        self._show_tab("data")
 
     def save_filter(self):
         query, _saved = save_active_filter(
@@ -102,20 +104,19 @@ class ActionExecutor:
             self.state.reset_selection()
 
     def show_filters(self):
-        query = show_saved_filters(
-            self.stdscr,
-            self.context.saved_filter_repository,
-            self.state.filter_query,
-        )
-        if query is not None:
-            self.state.filter_query = query
-            self.state.reset_selection()
+        self._show_tab("filters")
 
     def toggle_read_later(self):
         self.activity.toggle_read_later(self._selected_article())
 
     def show_reading_list(self):
-        show_reading_list(self.stdscr, self.context)
+        self._show_tab("later")
+
+    def previous_tab(self):
+        self._show_tab(adjacent_tab(self.state.category, -1))
+
+    def next_tab(self):
+        self._show_tab(adjacent_tab(self.state.category, 1))
 
     def bulk_open(self, limit):
         self.articles = self.bulk.execute(
@@ -130,6 +131,47 @@ class ActionExecutor:
             self.state,
             self.loading_callback,
         )
+
+    def _show_tab(self, tab_id):
+        current = tab_id
+        while True:
+            if current in CATEGORIES:
+                self.switch_category(current)
+                return
+
+            result = self._run_page(current)
+            if isinstance(result, TabSwitch):
+                current = result.target
+                continue
+            if current == "filters" and isinstance(result, str):
+                self.state.filter_query = result
+                self.state.reset_selection()
+            return
+
+    def _run_page(self, tab_id):
+        pages = {
+            "favorites": lambda: show_favorites(
+                self.stdscr,
+                self.context,
+            ),
+            "later": lambda: show_reading_list(
+                self.stdscr,
+                self.context,
+            ),
+            "history": lambda: show_history(
+                self.stdscr,
+                self.context,
+            ),
+            "filters": lambda: show_saved_filters(
+                self.stdscr,
+                self.context.saved_filter_repository,
+                self.state.filter_query,
+            ),
+            "data": lambda: show_data(self.stdscr, self.storage),
+            "about": lambda: show_about(self.stdscr),
+            "help": lambda: show_help(self.stdscr),
+        }
+        return pages[tab_id]()
 
     def _selected_article(self):
         return self.stories.selected_article(

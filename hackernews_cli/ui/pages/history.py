@@ -8,6 +8,7 @@ from ...data.events import OPEN_HISTORY
 from ...services import ActivityService
 from ..components.history_table import draw_history
 from ..terminal.prompts import show_record_filter
+from ..tabs import switch_for_key
 
 
 def show_history(stdscr, context):
@@ -42,6 +43,9 @@ def show_history(stdscr, context):
             )
             key = stdscr.getch()
 
+            tab_switch = switch_for_key("history", key)
+            if tab_switch:
+                return tab_switch
             if key in (27, ord("q"), ord("Q"), ord("H")):
                 return
             if key in (curses.KEY_DOWN, ord("j"), ord("J")) and entries:

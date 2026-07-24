@@ -1,3 +1,4 @@
+import curses
 import unittest
 from unittest.mock import patch
 
@@ -7,6 +8,7 @@ from hackernews_cli.ui.components.about_panel import (
 )
 from hackernews_cli.ui.components.frame import PageFrame
 from hackernews_cli.ui.pages.about import show_about
+from hackernews_cli.ui.tabs import TabSwitch
 
 
 class RecordingScreen:
@@ -52,7 +54,7 @@ class AboutTests(unittest.TestCase):
 
         rendered = "".join(write[2] for write in screen.writes)
         self.assertIn("HackerNews CLI", rendered)
-        self.assertIn("1.0.0", rendered)
+        self.assertIn("1.0.1", rendered)
         self.assertIn("Local SQLite", rendered)
         self.assertIn(REPOSITORY_URL, rendered)
         self.assertNotIn("Inspiration", rendered)
@@ -76,6 +78,24 @@ class AboutTests(unittest.TestCase):
         show_about(screen)
 
         open_browser.assert_called_once_with(REPOSITORY_URL)
+
+    @patch(
+        "hackernews_cli.ui.components.footer.curses.has_colors",
+        return_value=False,
+    )
+    @patch(
+        "hackernews_cli.ui.components.header.curses.has_colors",
+        return_value=False,
+    )
+    def test_about_page_returns_tab_switch_for_left_arrow(
+            self,
+            _header_colors,
+            _footer_colors):
+        screen = RecordingScreen((curses.KEY_LEFT,))
+
+        result = show_about(screen)
+
+        self.assertEqual(result, TabSwitch("data"))
 
 
 if __name__ == "__main__":

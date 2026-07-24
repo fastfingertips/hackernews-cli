@@ -75,7 +75,11 @@ def draw_history(
         if caps_lock_enabled()
         else "j/k move  enter open  u undo  / filter  d delete  c clear  q back"
     )
-    draw_footer(stdscr, frame.footer, f"  {footer_text}")
+    draw_footer(
+        stdscr,
+        frame.footer,
+        ("  left/right tabs", f"  {footer_text}"),
+    )
     stdscr.refresh()
 
 

@@ -1,25 +1,44 @@
+import curses
+
 from ..components.footer import draw_footer
 from ..components.frame import PageFrame
 from ..components.header import draw_page_header
-from ..terminal.decorators import clear_screen
 from ..terminal.dialogs import display_help_text
+from ..tabs import switch_for_key
 
 
-@clear_screen
 def show_help(stdscr):
-    """
-    Display the help page on the terminal screen.
-    """
-    frame = PageFrame.from_screen(stdscr)
-    draw_page_header(
-        stdscr,
-        frame.header,
-        "help",
-        context="Keyboard shortcuts and status filters",
-    )
-    display_help_text(stdscr, frame.content, get_help_text())
-    draw_footer(stdscr, frame.footer, "  press any key to return")
-    stdscr.getch()
+    """Display persistent help with the shared tab controls."""
+    stdscr.timeout(-1)
+    try:
+        while True:
+            stdscr.erase()
+            frame = PageFrame.from_screen(stdscr)
+            draw_page_header(
+                stdscr,
+                frame.header,
+                "help",
+                context="Keyboard shortcuts and status filters",
+            )
+            display_help_text(stdscr, frame.content, get_help_text())
+            draw_footer(
+                stdscr,
+                frame.footer,
+                (
+                    "  left/right tabs",
+                    "  q/?/esc back",
+                ),
+            )
+            stdscr.refresh()
+
+            key = stdscr.getch()
+            tab_switch = switch_for_key("help", key)
+            if tab_switch:
+                return tab_switch
+            if key in (27, ord("q"), ord("Q"), ord("?")):
+                return None
+    finally:
+        stdscr.timeout(100)
 
 
 def get_help_text():
@@ -30,8 +49,8 @@ def get_help_text():
         "Navigation (Vim & Standard):",
         "  Up / k         : Move selection up",
         "  Down / j       : Move selection down",
-        "  Left / h       : Jump one batch up",
-        "  Right / l      : Load the next batch",
+        "  Left / Right   : Switch top navigation tabs",
+        "  h / l          : Previous / next story batch",
         "  End + Down/j   : Load more stories automatically",
         "  g / G          : Jump to Top / Bottom",
         "  PgUp / PgDn    : Jump 5 items up / down",

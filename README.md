@@ -18,7 +18,7 @@ reading activity on the local machine.
   <a href="https://github.com/fastfingertips/hackernews-cli/actions/workflows/tests.yml">
     <img alt="Tests" src="https://github.com/fastfingertips/hackernews-cli/actions/workflows/tests.yml/badge.svg">
   </a>
-  <img alt="Version 1.0.0" src="https://img.shields.io/badge/version-1.0.0-blue">
+  <img alt="Version 1.0.1" src="https://img.shields.io/badge/version-1.0.1-blue">
   <img alt="Python 3.9+" src="https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&amp;logoColor=white">
 </p>
 
@@ -38,6 +38,7 @@ reading activity on the local machine.
 ## Features
 
 - Top, New, Ask HN, Show HN, and Jobs feeds
+- Global tab navigation across feeds and management pages
 - Automatic content filling based on terminal height
 - Infinite scrolling with background prefetching
 - Optional loading of every configured page in the current feed
@@ -96,8 +97,8 @@ python main.py --version
 | Key | Action |
 | --- | --- |
 | `j` / `k` or arrow keys | Move the selection down or up |
-| `h` / Left | Move to the previous loaded group |
-| `l` / Right | Load the next group |
+| Left / Right | Move through every top navigation tab |
+| `h` / `l` | Move to the previous or next story group |
 | `g` / `G` | Jump to the beginning or end of the list |
 | `Enter` | Open the selected link |
 | `c` | Open the Hacker News discussion |

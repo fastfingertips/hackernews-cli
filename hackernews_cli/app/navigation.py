@@ -2,10 +2,8 @@
 
 from curses import (
     KEY_DOWN,
-    KEY_LEFT,
     KEY_NPAGE,
     KEY_PPAGE,
-    KEY_RIGHT,
     KEY_UP,
 )
 
@@ -17,8 +15,6 @@ PAGE_JUMP_SIZE = 30
 
 class NavigationHandler:
     HANDLED_KEYS = {
-        KEY_RIGHT,
-        KEY_LEFT,
         KEY_DOWN,
         KEY_UP,
         KEY_NPAGE,
@@ -95,9 +91,7 @@ class NavigationHandler:
 
     def _load_next_batch(self, select_new_item):
         previous_visible_count = len(self.articles)
-        if not self.feed_service.append_next(
-                self.state,
-                progress_callback=self.loading_callback):
+        if not self.feed_service.append_next_ready(self.state):
             return
 
         self.articles = self.context.visible_articles(
@@ -114,10 +108,8 @@ class NavigationHandler:
 
     def handle_navigation(self, key):
         actions = {
-            KEY_RIGHT: self.next_page,
             ord("l"): self.next_page,
             ord("L"): self.next_page,
-            KEY_LEFT: self.previous_page,
             ord("h"): self.previous_page,
             KEY_DOWN: self.select_next_item,
             ord("j"): self.select_next_item,

@@ -53,7 +53,7 @@ def draw_about(stdscr, frame):
         stdscr,
         frame.footer,
         (
-            "  g open GitHub repository",
+            "  left/right tabs  g open GitHub repository",
             "  i/q back",
         ),
     )

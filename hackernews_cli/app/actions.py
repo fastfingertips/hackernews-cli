@@ -1,6 +1,6 @@
 """Map keys to action methods without owning application behavior."""
 
-from curses import KEY_ENTER
+from curses import KEY_ENTER, KEY_LEFT, KEY_RIGHT
 
 from ..hn.categories import CATEGORY_SHORTCUTS
 from .action_executor import ActionExecutor
@@ -9,6 +9,8 @@ from .action_executor import ActionExecutor
 class ActionHandler:
     HANDLED_KEYS = {
         KEY_ENTER,
+        KEY_LEFT,
+        KEY_RIGHT,
         10,
         ord("c"),
         ord(" "),
@@ -54,6 +56,8 @@ class ActionHandler:
     def handle_action(self, key):
         actions = {
             KEY_ENTER: self.executor.open_link,
+            KEY_LEFT: self.executor.previous_tab,
+            KEY_RIGHT: self.executor.next_tab,
             10: self.executor.open_link,
             ord("c"): self.executor.open_comments,
             ord(" "): self.executor.reset_filter,

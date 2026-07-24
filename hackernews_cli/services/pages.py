@@ -63,6 +63,48 @@ class PageService:
         self.prefetch(page_number + 1, category)
         return result
 
+    def request_page(
+            self,
+            page_number,
+            category=DEFAULT_CATEGORY):
+        """Start loading a page without waiting for the network."""
+        if page_number > self._total_pages:
+            return
+
+        key = (category, page_number)
+        with self._lock:
+            if key in self._pages or key in self._futures:
+                return
+            self._futures[key] = self._executor.submit(
+                self._fetcher,
+                page_number,
+                category=category,
+            )
+
+    def get_ready_page(
+            self,
+            page_number,
+            category=DEFAULT_CATEGORY):
+        """Return a cached/finished page, or request it and return ``None``."""
+        key = (category, page_number)
+        self.request_page(page_number, category)
+
+        with self._lock:
+            cached = self._pages.get(key)
+            future = self._futures.get(key)
+
+        if cached is not None:
+            return cached
+        if future is None or not future.done():
+            return None
+
+        result = future.result()
+        with self._lock:
+            self._futures.pop(key, None)
+            self._pages[key] = result
+        self.prefetch(page_number + 1, category)
+        return result
+
     @staticmethod
     def _await_future(future, progress_callback):
         if progress_callback is None or future.done():
@@ -76,18 +118,7 @@ class PageService:
                 continue
 
     def prefetch(self, page_number, category=DEFAULT_CATEGORY):
-        if page_number > self._total_pages:
-            return
-
-        key = (category, page_number)
-        with self._lock:
-            if key in self._pages or key in self._futures:
-                return
-            self._futures[key] = self._executor.submit(
-                self._fetcher,
-                page_number,
-                category=category,
-            )
+        self.request_page(page_number, category)
 
     def refresh_category(self, category=DEFAULT_CATEGORY):
         """Discard every cached batch for a feed and load it from page one."""

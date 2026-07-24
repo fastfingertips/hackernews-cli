@@ -97,6 +97,34 @@ class PageServiceTests(unittest.TestCase):
         finally:
             service.close()
 
+    def test_get_ready_page_never_waits_for_slow_fetch(self):
+        page_started = Event()
+        release_page = Event()
+        page_finished = Event()
+
+        def fetcher(page_number, category="top"):
+            page_started.set()
+            release_page.wait(timeout=2)
+            page = Page([], page_number, 10, category)
+            page_finished.set()
+            return page
+
+        service = PageService(fetcher=fetcher)
+        try:
+            self.assertIsNone(service.get_ready_page(1, "new"))
+            self.assertTrue(page_started.wait(timeout=1))
+            self.assertIsNone(service.get_ready_page(1, "new"))
+
+            release_page.set()
+            self.assertTrue(page_finished.wait(timeout=1))
+            ready = service.get_ready_page(1, "new")
+
+            self.assertIsNotNone(ready)
+            self.assertEqual(ready.category, "new")
+        finally:
+            release_page.set()
+            service.close()
+
     def test_category_refresh_discards_all_loaded_batches(self):
         calls = []
 

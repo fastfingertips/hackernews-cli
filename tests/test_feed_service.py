@@ -57,6 +57,48 @@ class FeedServiceTests(unittest.TestCase):
         self.assertEqual(result, articles)
         context.page_service.get_page.assert_not_called()
 
+    def test_fill_ready_does_not_wait_for_unfinished_batch(self):
+        articles = [
+            Article(f"Story {index}", f"https://example.com/{index}")
+            for index in range(30)
+        ]
+        context = Mock()
+        context.visible_articles.side_effect = (
+            lambda page, _query: page.articles
+        )
+        context.page_service.get_ready_page.return_value = None
+        state = FeedState(Page(articles, 1, 10, "top"))
+
+        result = FeedService(context).fill_ready_to_count(state, 50)
+
+        self.assertEqual(result, articles)
+        self.assertEqual(state.current_page, 1)
+        context.page_service.get_ready_page.assert_called_once_with(2, "top")
+
+    def test_pending_category_is_installed_only_when_ready(self):
+        context = Mock()
+        context.page_service.get_ready_page.return_value = None
+        state = FeedState(Page([], 1, 10, "top"))
+        service = FeedService(context)
+
+        service.switch_category(state, "new")
+
+        self.assertEqual(state.category, "new")
+        self.assertTrue(state.loading_category)
+        self.assertFalse(service.resolve_category(state))
+
+        new_page = Page(
+            [Article("New story", "https://example.com/new")],
+            1,
+            10,
+            "new",
+        )
+        context.page_service.get_ready_page.return_value = new_page
+
+        self.assertTrue(service.resolve_category(state))
+        self.assertEqual(state.page, new_page)
+        self.assertFalse(state.loading_category)
+
     def test_load_all_appends_until_total_page_count(self):
         pages = {
             page_number: Page(

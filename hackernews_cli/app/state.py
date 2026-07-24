@@ -8,6 +8,7 @@ class FeedState:
     page: object
     selected_index: int = 0
     filter_query: str = ""
+    loading_category: bool = False
 
     @property
     def current_page(self):

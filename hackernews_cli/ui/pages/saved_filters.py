@@ -8,6 +8,7 @@ from ..terminal.prompts import (
     show_filter_name,
     show_record_filter,
 )
+from ..tabs import switch_for_key
 
 
 def show_saved_filters(stdscr, repository, active_query=""):
@@ -36,6 +37,9 @@ def show_saved_filters(stdscr, repository, active_query=""):
             )
             key = stdscr.getch()
 
+            tab_switch = switch_for_key("filters", key)
+            if tab_switch:
+                return tab_switch
             if key in (27, ord("q"), ord("Q"), ord("S")):
                 return None
             if key in (curses.KEY_DOWN, ord("j"), ord("J")) and entries:

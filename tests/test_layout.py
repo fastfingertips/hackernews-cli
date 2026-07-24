@@ -200,7 +200,7 @@ class LayoutTests(unittest.TestCase):
 
         draw_feed_header(
             window,
-            Region(0, 2, 100),
+            Region(0, 2, 120),
             1,
             10,
             "",
@@ -210,7 +210,25 @@ class LayoutTests(unittest.TestCase):
         rendered = "".join(write[2] for write in window.writes)
         self.assertIn("hn", rendered)
         self.assertIn("top", rendered)
+        self.assertIn("favorites", rendered)
+        self.assertIn("later", rendered)
+        self.assertIn("history", rendered)
+        self.assertIn("filters", rendered)
+        self.assertIn("data", rendered)
+        self.assertIn("about", rendered)
+        self.assertIn("help", rendered)
+        self.assertNotIn("||", rendered)
         self.assertNotIn("[TOP]", rendered)
+        favorites_write = next(
+            write for write in window.writes
+            if write[2] == "favorites"
+        )
+        help_write = next(
+            write for write in window.writes
+            if write[2] == "help"
+        )
+        self.assertGreaterEqual(favorites_write[1], 55)
+        self.assertLessEqual(help_write[1] + len(help_write[2]), 118)
 
     @patch("hackernews_cli.ui.components.header.curses.has_colors", return_value=False)
     def test_header_shows_live_list_stats(self, _has_colors):
@@ -235,6 +253,35 @@ class LayoutTests(unittest.TestCase):
         self.assertIn("fav 4", rendered)
         self.assertIn("read 9", rendered)
 
+    @patch("hackernews_cli.ui.components.header.curses.has_colors", return_value=False)
+    def test_compact_header_right_aligns_local_tabs(
+            self,
+            _has_colors):
+        window = RecordingWindow()
+
+        draw_feed_header(
+            window,
+            Region(0, 2, 80),
+            1,
+            10,
+            "",
+            "top",
+        )
+
+        rendered = "".join(write[2] for write in window.writes)
+        self.assertNotIn("||", rendered)
+        self.assertIn("help", rendered)
+        fav_write = next(
+            write for write in window.writes
+            if write[2] == "fav"
+        )
+        help_write = next(
+            write for write in window.writes
+            if write[2] == "help"
+        )
+        self.assertGreaterEqual(fav_write[1], 40)
+        self.assertLessEqual(help_write[1] + len(help_write[2]), 78)
+
     @patch("hackernews_cli.ui.components.footer.caps_lock_enabled", return_value=True)
     @patch("hackernews_cli.ui.components.footer.curses.has_colors", return_value=False)
     def test_footer_reflects_caps_lock_actions(self, _has_colors, _caps_lock):
@@ -251,6 +298,7 @@ class LayoutTests(unittest.TestCase):
         self.assertIn("F favorites", rendered)
         self.assertIn("H history", rendered)
         self.assertIn("B open10", rendered)
+        self.assertIn("Left/Right tabs", rendered)
         self.assertIn("Q quit", rendered)
 
     @patch("hackernews_cli.ui.components.footer.caps_lock_enabled", return_value=False)
@@ -271,6 +319,7 @@ class LayoutTests(unittest.TestCase):
         self.assertIn("f fav", rendered)
         self.assertIn("r read", rendered)
         self.assertIn("b open5", rendered)
+        self.assertIn("left/right tabs", rendered)
         self.assertIn("q quit", rendered)
 
     def test_page_frame_regions_cover_screen_without_overlap(self):

@@ -7,6 +7,7 @@ from ...data.events import OPEN_READING_LIST
 from ...services import ActivityService, ReadingListService, StoryService
 from ..components.reading_list_table import draw_reading_list
 from ..terminal.prompts import show_record_filter
+from ..tabs import switch_for_key
 
 
 def show_reading_list(stdscr, context):
@@ -38,6 +39,9 @@ def show_reading_list(stdscr, context):
             )
             key = stdscr.getch()
 
+            tab_switch = switch_for_key("later", key)
+            if tab_switch:
+                return tab_switch
             if key in (27, ord("q"), ord("Q"), ord("T")):
                 return
             if key in (curses.KEY_DOWN, ord("j"), ord("J")) and entries:

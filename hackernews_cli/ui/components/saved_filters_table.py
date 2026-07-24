@@ -72,7 +72,11 @@ def draw_saved_filters(
         if caps_lock_enabled()
         else "j/k move  enter apply  n new  e edit  d delete  / search  q back"
     )
-    draw_footer(stdscr, frame.footer, f"  {footer_text}")
+    draw_footer(
+        stdscr,
+        frame.footer,
+        ("  left/right tabs", f"  {footer_text}"),
+    )
     stdscr.refresh()
 
 

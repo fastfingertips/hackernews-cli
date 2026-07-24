@@ -19,7 +19,7 @@ def draw_data(stdscr, frame, directory, databases, status=""):
     draw_page_header(
         stdscr,
         frame.header,
-        "local data",
+        "data",
         "format: SQLite  |  sync: off  |  encryption: no",
         f"directory: {directory or '-'}",
     )
@@ -49,7 +49,11 @@ def draw_data(stdscr, frame, directory, databases, status=""):
         )
 
     footer_text = status or "o open folder  q back"
-    draw_footer(stdscr, frame.footer, f"  {footer_text}")
+    draw_footer(
+        stdscr,
+        frame.footer,
+        ("  left/right tabs", f"  {footer_text}"),
+    )
     stdscr.refresh()
 
 

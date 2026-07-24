@@ -14,6 +14,7 @@ from hackernews_cli.data import (
     ReadingListRepository,
 )
 from hackernews_cli.hn import Article, Page
+from hackernews_cli.ui.tabs import TabSwitch
 
 
 class InputDispatchTests(unittest.TestCase):
@@ -21,6 +22,7 @@ class InputDispatchTests(unittest.TestCase):
         self.directory = tempfile.TemporaryDirectory()
         database = Database(Path(self.directory.name) / "test.sqlite3")
         self.page_service = Mock()
+        self.page_service.get_ready_page.return_value = None
         self.context = ApplicationContext(
             page_service=self.page_service,
             history_repository=HistoryRepository(database),
@@ -64,7 +66,7 @@ class InputDispatchTests(unittest.TestCase):
 
     def test_category_switch_resets_all_related_state(self):
         ask_page = Page([], current_page=1, total_pages=10, category="ask")
-        self.page_service.get_page.return_value = ask_page
+        self.page_service.get_ready_page.return_value = ask_page
         self.state.selected_index = 1
         self.state.filter_query = "python"
 
@@ -73,11 +75,55 @@ class InputDispatchTests(unittest.TestCase):
         self.assertEqual(state.page, ask_page)
         self.assertEqual(state.selected_index, 0)
         self.assertEqual(state.filter_query, "")
-        self.page_service.get_page.assert_called_once_with(
-            1,
-            category="ask",
-            refresh=False,
-        )
+        self.page_service.get_ready_page.assert_called_once_with(1, "ask")
+
+    def test_right_arrow_switches_to_the_next_tab(self):
+        new_page = Page([], current_page=1, total_pages=10, category="new")
+        self.page_service.get_ready_page.return_value = new_page
+
+        _, state = self.dispatch(curses.KEY_RIGHT)
+
+        self.assertEqual(state.page, new_page)
+        self.page_service.get_ready_page.assert_called_once_with(1, "new")
+
+    def test_arrows_keep_switching_while_category_data_loads(self):
+        self.page_service.get_ready_page.return_value = None
+
+        _, state = self.dispatch(curses.KEY_RIGHT)
+        self.assertEqual(state.category, "new")
+        self.assertTrue(state.loading_category)
+
+        _, state = self.dispatch(curses.KEY_RIGHT)
+        self.assertEqual(state.category, "ask")
+        self.assertTrue(state.loading_category)
+        self.assertEqual(state.page.articles, [])
+
+    @patch("hackernews_cli.app.action_executor.show_help")
+    def test_left_arrow_wraps_from_top_to_help(self, show_help):
+        self.dispatch(curses.KEY_LEFT)
+
+        show_help.assert_called_once_with(None)
+
+    @patch("hackernews_cli.app.action_executor.show_history")
+    @patch("hackernews_cli.app.action_executor.show_reading_list")
+    @patch("hackernews_cli.app.action_executor.show_favorites")
+    def test_arrow_results_move_between_management_tabs(
+            self,
+            show_favorites,
+            show_reading_list,
+            show_history):
+        show_favorites.return_value = TabSwitch("later")
+        show_reading_list.return_value = TabSwitch("history")
+        show_history.return_value = TabSwitch("top")
+        top_page = Page([], 1, 10, "top")
+        self.page_service.get_ready_page.return_value = top_page
+
+        self.dispatch(ord("F"))
+
+        show_favorites.assert_called_once_with(None, self.context)
+        show_reading_list.assert_called_once_with(None, self.context)
+        show_history.assert_called_once_with(None, self.context)
+        self.assertEqual(self.state.page, top_page)
 
     def test_h_jumps_up_without_discarding_loaded_stories(self):
         articles = [
@@ -99,7 +145,7 @@ class InputDispatchTests(unittest.TestCase):
         ], 2, 10, "top")
         first_page = Page(self.articles, 1, 10, "top")
         state = FeedState(first_page, selected_index=1)
-        self.page_service.get_page.return_value = next_page
+        self.page_service.get_ready_page.return_value = next_page
 
         _, state = self.dispatch(curses.KEY_DOWN, state)
 

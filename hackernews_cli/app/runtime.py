@@ -20,16 +20,30 @@ class ApplicationRuntime:
         first_page = self.feed_service.get_page(1, DEFAULT_CATEGORY)
         self.state = FeedState(first_page)
         self.input_controller = InputController(self.context)
+        self.loading_frame = 0
 
     def run(self):
         try:
             while True:
+                self.feed_service.resolve_category(self.state)
                 articles = self.context.visible_articles(
                     self.state.page,
                     self.state.filter_query,
                 )
                 articles = self._fill_viewport(articles)
-                key = self._show_home(articles)
+                capacity = home_story_capacity(self.stdscr)
+                is_loading = self.feed_service.is_loading(
+                    self.state,
+                    len(articles),
+                    capacity,
+                )
+                loading_frame = self.loading_frame if is_loading else None
+                key = self._show_home(articles, loading_frame)
+                self.loading_frame = (
+                    self.loading_frame + 1
+                    if is_loading
+                    else 0
+                )
                 if key == -1:
                     continue
 
@@ -73,7 +87,7 @@ class ApplicationRuntime:
         finally:
             self.context.close()
 
-    def _show_home(self, articles):
+    def _show_home(self, articles, loading_frame=None):
         return show_home(
             self.stdscr,
             articles,
@@ -86,25 +100,13 @@ class ApplicationRuntime:
             self.context.favorite_repository.favorite_dates(),
             self.context.read_repository.read_dates(),
             self.context.reading_list_repository.dates(),
+            loading_frame,
         )
 
     def _fill_viewport(self, articles):
-        loading_frame = 0
-
-        def animate_loading(preview_articles):
-            nonlocal loading_frame
-            self._draw_home(
-                preview_articles,
-                self.state.selected_index,
-                self.state.page,
-                loading_frame=loading_frame,
-            )
-            loading_frame += 1
-
-        return self.feed_service.fill_to_count(
+        return self.feed_service.fill_ready_to_count(
             self.state,
             home_story_capacity(self.stdscr),
-            progress_callback=animate_loading,
         )
 
     def _draw_home(

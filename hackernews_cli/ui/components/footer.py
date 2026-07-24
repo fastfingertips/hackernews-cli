@@ -56,14 +56,16 @@ def draw_feed_footer(stdscr, region):
         lines = (
             "  CAPS ON  T read later  A load all  S filters"
             "  F favorites  H history  B open10",
-            "  G bottom  J/K/L move  Enter open  I about  D data  U refresh",
+            "  Left/Right tabs  G bottom  J/K/L move"
+            "  Enter open  I about  D data  U refresh",
         )
         right = "Q quit  "
     else:
         lines = (
             "  caps off  t later  a load all  / filter  s save"
             "  f fav  r read  b open5",
-            "  j/k/l move  enter open  i about  d data  u refresh",
+            "  left/right tabs  j/k/l move"
+            "  enter open  i about  d data  u refresh",
         )
         right = "q quit  "
     draw_footer(stdscr, region, lines, right)

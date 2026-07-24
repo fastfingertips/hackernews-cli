@@ -2,6 +2,7 @@
 
 from ..components.data_panel import draw_data
 from ..components.frame import PageFrame
+from ..tabs import switch_for_key
 
 
 def show_data(stdscr, storage_service):
@@ -17,6 +18,9 @@ def show_data(stdscr, storage_service):
                 status,
             )
             key = stdscr.getch()
+            tab_switch = switch_for_key("data", key)
+            if tab_switch:
+                return tab_switch
             if key in (27, ord("q"), ord("Q"), ord("d"), ord("D")):
                 return
             if key in (ord("o"), ord("O")):
