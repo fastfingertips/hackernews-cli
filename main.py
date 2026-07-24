@@ -1,54 +1,44 @@
+"""Executable entry point for HackerNews CLI."""
+
+import argparse
 import curses
-from utils.terminal.input_utils import handle_input
-from utils.html.fetch_utils import fetch_hacker_news
-from utils.helpers.filter_utils import apply_filter
-from pages import show_home_page
+
+from hackernews_cli import __version__
+from hackernews_cli.app.runtime import ApplicationRuntime
+from hackernews_cli.ui.terminal.colors import (
+    apply_default_background,
+    init_colors,
+)
 
 
-def main(stdscr):
-    """initialize and run the TUI application"""
-    curses.curs_set(0)  # hide the cursor
-    stdscr.nodelay(1)  # non-blocking input
-    stdscr.timeout(100)  # set input timeout
+def run(stdscr):
+    """Configure curses and hand control to the application runtime."""
+    try:
+        curses.curs_set(0)
+    except curses.error:
+        pass
 
-    current_page = 1
-    selected_index = 0
-    filter_query = ""
+    stdscr.nodelay(True)
+    stdscr.timeout(100)
+    init_colors()
+    apply_default_background(stdscr)
+    ApplicationRuntime(stdscr).run()
 
-    # fetch initial page of articles
-    page = fetch_hacker_news(current_page)
 
-    while True:
-        # apply filter to get filtered articles
-        articles = apply_filter(page.articles, filter_query)
+def main(argv=None):
+    """Start the application in a managed curses session."""
+    parser = argparse.ArgumentParser(
+        prog="hackernews-cli",
+        description="Keyboard-first Hacker News terminal client.",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
+    )
+    parser.parse_args(argv)
+    curses.wrapper(run)
 
-        # draw the home page and get user input
-        key = show_home_page(
-            stdscr,
-            articles,
-            selected_index,
-            page.current_page,
-            page.total_pages,
-            filter_query
-        )
-    
-        # handle user input and update state
-        result = handle_input(
-            stdscr,
-            key,
-            current_page,
-            page,
-            selected_index,
-            articles, 
-            filter_query
-        )
-
-        if not any(result):
-            break
-
-        current_page, page, selected_index, filter_query = result
-
-    curses.endwin()  # end curses mode
 
 if __name__ == "__main__":
-    curses.wrapper(main)
+    main()
