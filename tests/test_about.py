@@ -54,7 +54,7 @@ class AboutTests(unittest.TestCase):
 
         rendered = "".join(write[2] for write in screen.writes)
         self.assertIn("HackerNews CLI", rendered)
-        self.assertIn("1.0.1", rendered)
+        self.assertIn("1.0.2", rendered)
         self.assertIn("Local SQLite", rendered)
         self.assertIn(REPOSITORY_URL, rendered)
         self.assertNotIn("Inspiration", rendered)

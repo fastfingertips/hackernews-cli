@@ -38,11 +38,13 @@ class DatabaseTests(unittest.TestCase):
                     "read_stories",
                     "saved_filters",
                     "reading_list",
+                    "stories",
+                    "feed_entries",
                     "sqlite_sequence",
                 },
             )
             self.assertIn("reverted_event_id", history_columns)
-            self.assertEqual(schema_version, 4)
+            self.assertEqual(schema_version, 5)
 
     def test_existing_history_table_gains_event_link_column(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -13,6 +13,7 @@ def show_feed_filter(stdscr, current_filter=""):
             "Fields: title: site: by: points:>=100 replies:>20",
             "State: is:visited is:unvisited is:fav is:unfav",
             "       is:read is:unread is:later is:unlater",
+            "Source: is:live is:cached",
             "Prefix any term with - to exclude",
         ),
         current_filter,

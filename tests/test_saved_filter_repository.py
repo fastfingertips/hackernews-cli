@@ -19,9 +19,10 @@ class SavedFilterRepositoryTests(unittest.TestCase):
     def test_database_starts_with_ready_to_use_filters(self):
         entries = self.repository.list_entries()
 
-        self.assertEqual(len(entries), 6)
+        self.assertEqual(len(entries), 8)
         self.assertTrue(all(entry.is_builtin for entry in entries))
         self.assertIn("is:unread", {entry.query for entry in entries})
+        self.assertIn("is:cached", {entry.query for entry in entries})
 
     def test_custom_filter_can_be_saved_updated_and_removed(self):
         self.assertTrue(

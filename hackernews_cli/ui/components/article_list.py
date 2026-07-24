@@ -6,6 +6,7 @@ from ..terminal.drawing import safe_addstr, truncate_line
 from ..terminal.colors import (
     FAVORITE_COLOR_PAIR,
     HEADER_COLOR_PAIR,
+    MUTED_COLOR_PAIR,
     READ_COLOR_PAIR,
     READ_LATER_COLOR_PAIR,
     VISITED_COLOR_PAIR,
@@ -98,11 +99,15 @@ def display_article_list(
             break
 
         is_selected = (actual_idx == selected_index)
-        marker = ">" if is_selected else " "
+        marker = ">" if is_selected else "~" if article.is_cached else " "
         rank = article.rank or f"{actual_idx + 1}."
         rank_cell = f"{marker} {rank:>4} "
         points_cell = _number_from(article.score)
-        age_cell = _short_age(article.age)
+        age_cell = _short_age(
+            relative_time(article.published_at)
+            if article.published_at
+            else article.age
+        )
         fetched_cell = relative_time(article.fetched_at)
         replies_cell = _number_from(article.comments_count)
         visited_cell = relative_time(visited_dates.get(article.link))
@@ -154,6 +159,11 @@ def display_article_list(
             if curses.has_colors()
             else curses.A_BOLD
         )
+        cached_attr = (
+            curses.color_pair(MUTED_COLOR_PAIR) | curses.A_DIM
+            if curses.has_colors()
+            else curses.A_DIM
+        )
         safe_addstr(
             stdscr,
             y,
@@ -169,6 +179,8 @@ def display_article_list(
             if article.link in read_dates
             else visited_attr
             if article.link in visited_dates
+            else cached_attr
+            if article.is_cached
             else curses.A_NORMAL,
         )
 

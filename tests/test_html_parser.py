@@ -18,7 +18,9 @@ SAMPLE_HTML = """
     <td class="subtext">
       <span class="score">42 points</span>
       <a class="hnuser">ada</a>
-      <span class="age">2 hours ago</span>
+      <span class="age" title="2026-07-24T10:00:00 123">
+        2 hours ago
+      </span>
       <a href="item?id=123">12 comments</a>
     </td>
   </tr>
@@ -37,6 +39,7 @@ class HtmlParserTests(unittest.TestCase):
         self.assertEqual(article.score, "42 points")
         self.assertEqual(article.author, "ada")
         self.assertEqual(article.comments_count, "12 comments")
+        self.assertEqual(article.published_at, "2026-07-24T10:00:00")
         self.assertEqual(article.hn_link, "https://news.ycombinator.com/item?id=123")
 
 

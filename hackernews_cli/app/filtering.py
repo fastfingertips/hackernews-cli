@@ -10,6 +10,8 @@ STATUS_FILTERS = {
     "unread",
     "later",
     "unlater",
+    "cached",
+    "live",
 }
 
 
@@ -89,7 +91,7 @@ def _matches_term(
             term.value,
         ),
         "is": lambda: _matches_status(
-            article.link,
+            article,
             term.value,
             visited_urls,
             favorite_urls,
@@ -103,21 +105,23 @@ def _matches_term(
 
 
 def _matches_status(
-        url,
+        article,
         status,
         visited_urls,
         favorite_urls,
         read_urls,
         reading_list_urls):
     checks = {
-        "visited": url in visited_urls,
-        "unvisited": url not in visited_urls,
-        "fav": url in favorite_urls,
-        "unfav": url not in favorite_urls,
-        "read": url in read_urls,
-        "unread": url not in read_urls,
-        "later": url in reading_list_urls,
-        "unlater": url not in reading_list_urls,
+        "visited": article.link in visited_urls,
+        "unvisited": article.link not in visited_urls,
+        "fav": article.link in favorite_urls,
+        "unfav": article.link not in favorite_urls,
+        "read": article.link in read_urls,
+        "unread": article.link not in read_urls,
+        "later": article.link in reading_list_urls,
+        "unlater": article.link not in reading_list_urls,
+        "cached": article.is_cached,
+        "live": not article.is_cached,
     }
     return status in STATUS_FILTERS and checks[status]
 

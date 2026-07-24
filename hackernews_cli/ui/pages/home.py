@@ -58,6 +58,7 @@ def draw_home(
         favorite_count=len(links.intersection(favorite_dates)),
         read_count=len(links.intersection(read_dates)),
         later_count=len(links.intersection(later_dates)),
+        cached_count=sum(article.is_cached for article in articles),
     )
 
     display_article_list(

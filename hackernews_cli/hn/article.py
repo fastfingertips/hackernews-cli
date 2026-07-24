@@ -14,6 +14,10 @@ class Article:
         hn_link: str = "",
         item_id: str = "",
         fetched_at: str = "",
+        published_at: str = "",
+        first_seen_at: str = "",
+        last_seen_at: str = "",
+        is_cached: bool = False,
     ):
         self.title = title
         self.link = link
@@ -26,6 +30,10 @@ class Article:
         self.hn_link = hn_link
         self.item_id = item_id
         self.fetched_at = fetched_at
+        self.published_at = published_at
+        self.first_seen_at = first_seen_at
+        self.last_seen_at = last_seen_at
+        self.is_cached = is_cached
 
     def __repr__(self) -> str:
         return f"Article(title={self.title!r}, link={self.link!r}, score={self.score!r})"

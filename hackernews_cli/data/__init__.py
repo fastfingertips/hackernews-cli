@@ -8,6 +8,7 @@ from .history import (
 from .reads import ReadRepository
 from .reading_list import ReadingListEntry, ReadingListRepository
 from .saved_filters import SavedFilter, SavedFilterRepository
+from .stories import StoryRepository
 
 __all__ = [
     "FavoriteEntry",
@@ -20,5 +21,6 @@ __all__ = [
     "ReadingListRepository",
     "SavedFilter",
     "SavedFilterRepository",
+    "StoryRepository",
     "Database",
 ]

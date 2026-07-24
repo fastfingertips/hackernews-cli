@@ -43,6 +43,7 @@ def parse_html(html: str) -> list[Article]:
         score = "0 points"
         author = "hn"
         age = ""
+        published_at = ""
         comments_count = "0 comments"
         hn_link = f"https://news.ycombinator.com/item?id={item_id}" if item_id else link
 
@@ -60,6 +61,7 @@ def parse_html(html: str) -> list[Article]:
                 age_elem = subtext_td.select_one('span.age')
                 if age_elem:
                     age = age_elem.get_text(strip=True).replace('\xa0', ' ')
+                    published_at = age_elem.get("title", "").split()[0]
 
                 comment_anchors = subtext_td.select('a[href^="item?id="]')
                 for c_anchor in comment_anchors:
@@ -81,6 +83,7 @@ def parse_html(html: str) -> list[Article]:
                 score=score,
                 author=author,
                 age=age,
+                published_at=published_at,
                 comments_count=comments_count,
                 hn_link=hn_link,
                 item_id=item_id

@@ -68,6 +68,18 @@ class FeedFilterTests(unittest.TestCase):
 
         self.assertEqual(result, [self.first])
 
+    def test_source_filter_distinguishes_live_and_cached_stories(self):
+        self.second.is_cached = True
+
+        self.assertEqual(
+            apply_filter(self.articles, "is:live"),
+            [self.first],
+        )
+        self.assertEqual(
+            apply_filter(self.articles, "is:cached"),
+            [self.second],
+        )
+
 
 class RecordFilterTests(unittest.TestCase):
     def test_history_matches_action_and_title(self):

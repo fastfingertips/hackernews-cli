@@ -5,14 +5,20 @@ from threading import RLock
 
 from ..hn.categories import DEFAULT_CATEGORY
 from ..hn.client import fetch_hacker_news
+from ..hn.page import Page
 
 
 class PageService:
     """Load pages and keep the likely next page ready in memory."""
 
-    def __init__(self, fetcher=fetch_hacker_news, total_pages=10):
+    def __init__(
+            self,
+            fetcher=fetch_hacker_news,
+            total_pages=10,
+            story_repository=None):
         self._fetcher = fetcher
         self._total_pages = total_pages
+        self._story_repository = story_repository
         self._pages = {}
         self._futures = {}
         self._lock = RLock()
@@ -42,7 +48,9 @@ class PageService:
         if cached is not None:
             result = cached
         elif future is not None:
-            result = self._await_future(future, progress_callback)
+            result = self._prepare_page(
+                self._await_future(future, progress_callback),
+            )
             with self._lock:
                 self._futures.pop(key, None)
                 self._pages[key] = result
@@ -52,11 +60,15 @@ class PageService:
                 page_number,
                 category=category,
             )
-            result = self._await_future(future, progress_callback)
+            result = self._prepare_page(
+                self._await_future(future, progress_callback),
+            )
             with self._lock:
                 self._pages[key] = result
         else:
-            result = self._fetcher(page_number, category=category)
+            result = self._prepare_page(
+                self._fetcher(page_number, category=category),
+            )
             with self._lock:
                 self._pages[key] = result
 
@@ -98,12 +110,46 @@ class PageService:
         if future is None or not future.done():
             return None
 
-        result = future.result()
+        result = self._prepare_page(future.result())
         with self._lock:
             self._futures.pop(key, None)
             self._pages[key] = result
         self.prefetch(page_number + 1, category)
         return result
+
+    def _prepare_page(self, page):
+        """Persist a valid response or recover the page from SQLite."""
+        if self._story_repository is None:
+            return page
+
+        valid_articles = [
+            article
+            for article in page.articles
+            if article.item_id and article.link
+        ]
+        if not valid_articles:
+            cached = self._story_repository.page(
+                page.category,
+                page.current_page,
+            )
+            if cached:
+                return Page(
+                    cached,
+                    page.current_page,
+                    page.total_pages,
+                    page.category,
+                )
+            return page
+
+        archived = self._story_repository.save_page(page)
+        if not archived:
+            return page
+        return page.append(Page(
+            archived,
+            page.current_page,
+            page.total_pages,
+            page.category,
+        ))
 
     @staticmethod
     def _await_future(future, progress_callback):

@@ -77,7 +77,8 @@ def draw_feed_header(
         visited_count=0,
         favorite_count=0,
         read_count=0,
-        later_count=0):
+        later_count=0,
+        cached_count=0):
     """Render a quiet, compact feed header."""
     if region.height == 0:
         return
@@ -89,7 +90,8 @@ def draw_feed_header(
     if listed_count is not None:
         stats = (
             f"{stats}  |  listed {listed_count}  |  visited {visited_count}  |  "
-            f"fav {favorite_count}  |  later {later_count}  |  read {read_count}"
+            f"cached {cached_count}  |  fav {favorite_count}  |  "
+            f"later {later_count}  |  read {read_count}"
         )
     stats_x = max(2, width - len(stats) - 2)
     if stats and region.height > 1:

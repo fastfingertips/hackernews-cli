@@ -80,6 +80,7 @@ def get_help_text():
         "  title:/site:/by: : Filter feed fields",
         "  points:/replies: : Compare numeric fields",
         "  is:visited/fav/read/unread : Filter state",
+        "  is:live/cached : Filter fetched story source",
         "  -term          : Exclude a word or field",
         "  Space          : Reset search filter",
         "  u / U          : Refresh current feed from page one",

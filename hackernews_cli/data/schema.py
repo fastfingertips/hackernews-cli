@@ -3,7 +3,7 @@
 from .saved_filters import BUILTIN_FILTERS
 
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 
 def ensure_schema(connection):
@@ -17,6 +17,7 @@ def ensure_schema(connection):
 
 def _create_tables(connection):
     _create_history_table(connection)
+    _create_story_tables(connection)
     connection.execute(
         """
         CREATE TABLE IF NOT EXISTS favorites (
@@ -53,6 +54,44 @@ def _create_tables(connection):
             url TEXT PRIMARY KEY,
             title TEXT NOT NULL,
             added_at TEXT NOT NULL
+        )
+        """
+    )
+
+
+def _create_story_tables(connection):
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS stories (
+            item_id TEXT PRIMARY KEY,
+            url TEXT NOT NULL,
+            title TEXT NOT NULL,
+            domain TEXT NOT NULL,
+            score TEXT NOT NULL,
+            author TEXT NOT NULL,
+            age TEXT NOT NULL,
+            published_at TEXT NOT NULL,
+            comments_count TEXT NOT NULL,
+            hn_url TEXT NOT NULL,
+            first_seen_at TEXT NOT NULL,
+            last_seen_at TEXT NOT NULL,
+            fetched_at TEXT NOT NULL
+        )
+        """
+    )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS feed_entries (
+            category TEXT NOT NULL,
+            item_id TEXT NOT NULL,
+            page_number INTEGER NOT NULL,
+            position INTEGER NOT NULL,
+            rank TEXT NOT NULL,
+            is_current INTEGER NOT NULL DEFAULT 1,
+            first_seen_at TEXT NOT NULL,
+            last_seen_at TEXT NOT NULL,
+            PRIMARY KEY (category, item_id),
+            FOREIGN KEY (item_id) REFERENCES stories (item_id)
         )
         """
     )
@@ -114,5 +153,17 @@ def _create_indexes(connection):
         """
         CREATE INDEX IF NOT EXISTS history_url_index
         ON history (url)
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS feed_entries_page_index
+        ON feed_entries (category, page_number, is_current, position)
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS stories_url_index
+        ON stories (url)
         """
     )

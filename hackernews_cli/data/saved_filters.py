@@ -12,6 +12,8 @@ BUILTIN_FILTERS = (
     ("Favorites", "is:fav"),
     ("High signal", "points:>=300 replies:>=50"),
     ("Read later", "is:later"),
+    ("Cached stories", "is:cached"),
+    ("Live stories", "is:live"),
 )
 
 

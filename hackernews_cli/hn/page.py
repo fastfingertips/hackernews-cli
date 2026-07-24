@@ -19,20 +19,32 @@ class Page:
 
     def append(self, next_page):
         """Return a new feed containing this page and a newly loaded page."""
-        seen = {
-            article.item_id or article.link
-            for article in self.articles
+        articles = list(self.articles)
+        positions = {
+            article.item_id or article.link: index
+            for index, article in enumerate(articles)
             if article.item_id or article.link
         }
-        articles = list(self.articles)
 
         for article in next_page.articles:
             identity = article.item_id or article.link
-            if identity and identity in seen:
+            if identity and identity in positions:
+                existing_index = positions[identity]
+                existing = articles[existing_index]
+                if existing.is_cached and not article.is_cached:
+                    articles.pop(existing_index)
+                    positions = {
+                        item.item_id or item.link: index
+                        for index, item in enumerate(articles)
+                        if item.item_id or item.link
+                    }
+                else:
+                    continue
+            if identity and identity in positions:
                 continue
             articles.append(article)
             if identity:
-                seen.add(identity)
+                positions[identity] = len(articles) - 1
 
         loaded_pages = tuple(dict.fromkeys(
             self.loaded_pages + next_page.loaded_pages

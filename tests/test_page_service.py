@@ -1,11 +1,23 @@
 import unittest
+import tempfile
+from pathlib import Path
 from threading import Event
 
-from hackernews_cli.hn import Page
+from hackernews_cli.data import Database, StoryRepository
+from hackernews_cli.hn import Article, Page
 from hackernews_cli.services import PageService
 
 
 class PageServiceTests(unittest.TestCase):
+    @staticmethod
+    def story(item_id):
+        return Article(
+            title=f"Story {item_id}",
+            link=f"https://example.com/{item_id}",
+            item_id=str(item_id),
+            fetched_at="2026-07-24T12:00:00+00:00",
+        )
+
     def test_next_page_is_prefetched_and_not_fetched_twice(self):
         calls = []
 
@@ -144,6 +156,73 @@ class PageServiceTests(unittest.TestCase):
             self.assertEqual(calls.count(("top", 2)), 2)
         finally:
             service.close()
+
+    def test_refresh_appends_story_missing_from_latest_fetch(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = StoryRepository(Database(
+                Path(directory) / "data.sqlite3"
+            ))
+            page_one_calls = 0
+
+            def fetcher(page_number, category="top"):
+                nonlocal page_one_calls
+                if page_number != 1:
+                    return Page([], page_number, 10, category)
+                page_one_calls += 1
+                articles = (
+                    [self.story(1), self.story(2)]
+                    if page_one_calls == 1
+                    else [self.story(2), self.story(3)]
+                )
+                return Page(articles, page_number, 10, category)
+
+            service = PageService(
+                fetcher=fetcher,
+                story_repository=repository,
+            )
+            try:
+                service.get_page(1, "top")
+                refreshed = service.get_page(1, "top", refresh=True)
+            finally:
+                service.close()
+
+        self.assertEqual(
+            [article.item_id for article in refreshed.articles],
+            ["2", "3", "1"],
+        )
+        self.assertFalse(refreshed.articles[0].is_cached)
+        self.assertTrue(refreshed.articles[-1].is_cached)
+
+    def test_failed_fetch_recovers_last_saved_page(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = StoryRepository(Database(
+                Path(directory) / "data.sqlite3"
+            ))
+            repository.save_page(Page(
+                [self.story(1)],
+                1,
+                10,
+                "top",
+            ))
+            service = PageService(
+                fetcher=lambda page_number, category="top": Page(
+                    [Article("Network error", "")],
+                    page_number,
+                    10,
+                    category,
+                ),
+                story_repository=repository,
+            )
+            try:
+                recovered = service.get_page(1, "top")
+            finally:
+                service.close()
+
+        self.assertEqual(
+            [article.item_id for article in recovered.articles],
+            ["1"],
+        )
+        self.assertTrue(recovered.articles[0].is_cached)
 
 
 if __name__ == "__main__":

@@ -9,6 +9,7 @@ from ..data import (
     ReadRepository,
     ReadingListRepository,
     SavedFilterRepository,
+    StoryRepository,
 )
 from ..services.pages import PageService
 from .filtering import apply_filter
@@ -24,17 +25,22 @@ class ApplicationContext:
     read_repository: object
     saved_filter_repository: object = None
     reading_list_repository: object = None
+    story_repository: object = None
 
     @classmethod
     def create_default(cls):
         database = Database()
+        story_repository = StoryRepository(database)
         return cls(
-            page_service=PageService(),
+            page_service=PageService(
+                story_repository=story_repository,
+            ),
             history_repository=HistoryRepository(database),
             favorite_repository=FavoriteRepository(database),
             read_repository=ReadRepository(database),
             saved_filter_repository=SavedFilterRepository(database),
             reading_list_repository=ReadingListRepository(database),
+            story_repository=story_repository,
         )
 
     def visible_articles(self, page, filter_query=""):

@@ -23,7 +23,7 @@ class StorageService:
         path = Path(self.context.history_repository.database_path)
         return [DatabaseInfo(
             name=path.stem,
-            purpose="History, fav, reads, later, saved filters",
+            purpose="Activity, saved filters, and story cache",
             path=path,
             size=path.stat().st_size if path.exists() else 0,
         )]

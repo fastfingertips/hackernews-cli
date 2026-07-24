@@ -18,7 +18,7 @@ reading activity on the local machine.
   <a href="https://github.com/fastfingertips/hackernews-cli/actions/workflows/tests.yml">
     <img alt="Tests" src="https://github.com/fastfingertips/hackernews-cli/actions/workflows/tests.yml/badge.svg">
   </a>
-  <img alt="Version 1.0.1" src="https://img.shields.io/badge/version-1.0.1-blue">
+  <img alt="Version 1.0.2" src="https://img.shields.io/badge/version-1.0.2-blue">
   <img alt="Python 3.9+" src="https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&amp;logoColor=white">
 </p>
 
@@ -45,6 +45,7 @@ reading activity on the local machine.
 - Visited, favorite, read, and read-later states
 - Detailed, reversible activity history
 - Built-in and user-defined saved filters
+- Persistent story cache with offline fallback
 - Bulk opening of the 5 or 10 highest-scoring untouched links
 - Local storage in a single SQLite database
 - Terminal-default background for light and dark theme compatibility
@@ -167,6 +168,7 @@ Supported fields:
 | Favorite state | `is:fav`, `is:unfav` |
 | Read state | `is:read`, `is:unread` |
 | Read-later state | `is:later`, `is:unlater` |
+| Source | `is:live`, `is:cached` |
 
 Examples:
 
@@ -232,6 +234,10 @@ moves the selection to the opened rows.
 - `Read`: time marked as read
 
 State timestamps use relative values such as `5m ago`, `3h ago`, or `2d ago`.
+Stories missing from a later fetch remain at the end of their saved batch.
+They use a `~` row marker and count as `cached` in the header. `Age` continues
+to advance from the original submission timestamp, while `Fetched` shows the
+freshness of the locally stored metadata.
 
 ## Local data
 
@@ -253,6 +259,10 @@ The database contains:
 - Read state
 - Read Later
 - Saved filters
+- Fetched stories and their latest feed positions
+
+Successful fetches update existing story metadata instead of creating
+duplicates. When a request fails, the last saved batch is shown from SQLite.
 
 There is no cloud synchronization, and the SQLite file is not encrypted by
 the application. Back up the data by copying
